@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Passive Voice Match</title>
+    <title>The Passive Voice Match - Advanced</title>
     <style>
         :root {
             --bg-color: #1a1a2e;
@@ -13,6 +13,7 @@
             --secondary: #f72585;
             --success: #06d6a0;
             --error: #ef476f;
+            --warning: #ffd166;
             --text-light: #f8f9fa;
         }
 
@@ -31,6 +32,7 @@
             align-items: center;
             min-height: 100vh;
             overflow-x: hidden;
+            padding: 20px;
         }
 
         .game-container {
@@ -39,17 +41,38 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             max-width: 900px;
-            width: 95%;
+            width: 100%;
             text-align: center;
             position: relative;
         }
 
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
         h1 {
             color: var(--secondary);
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 2.2rem;
             text-transform: uppercase;
             letter-spacing: 2px;
+        }
+
+        .timer {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            color: var(--success);
+            transition: color 0.3s;
+        }
+        
+        .timer.danger {
+            color: var(--error);
+            animation: pulse 1s infinite;
         }
 
         p.instructions {
@@ -75,7 +98,7 @@
             font-size: 1.2rem;
             font-weight: bold;
             color: var(--primary);
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             text-transform: uppercase;
         }
 
@@ -85,11 +108,15 @@
             padding: 1rem;
             border-radius: 12px;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 500;
             transition: all 0.3s ease;
             user-select: none;
             box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .card:hover {
@@ -117,7 +144,7 @@
             animation: shake 0.4s ease;
         }
 
-        /* Modal de Felicitación */
+        /* Modal y Tabla de Resultados */
         .modal-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -138,13 +165,18 @@
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
-            padding: 3rem;
+            background: linear-gradient(135deg, #1f2954 0%, #16213e 100%);
+            padding: 2rem;
             border-radius: 20px;
             text-align: center;
             transform: scale(0.8);
             transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 40px rgba(76, 201, 240, 0.4);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90%;
+            overflow-y: auto;
+            border: 2px solid var(--primary);
         }
 
         .modal-overlay.active .modal-content {
@@ -152,16 +184,61 @@
         }
 
         .modal-content h2 {
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin-bottom: 1rem;
-            color: #fff;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: var(--success);
+        }
+        
+        .modal-content.timeout h2 {
+            color: var(--error);
         }
 
         .modal-content p {
-            font-size: 1.5rem;
-            margin-bottom: 2rem;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
             color: #e0fbfc;
+        }
+
+        .mistakes-container {
+            margin-bottom: 2rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+
+        .mistakes-container h3 {
+            color: var(--warning);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: left;
+        }
+
+        th {
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        
+        td {
+            color: #ccc;
+        }
+
+        .perfect-score {
+            color: var(--success);
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 1rem;
         }
 
         .btn-restart {
@@ -175,6 +252,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(247, 37, 133, 0.4);
+            margin-top: 1rem;
         }
 
         .btn-restart:hover {
@@ -183,27 +261,39 @@
             box-shadow: 0 6px 20px rgba(247, 37, 133, 0.6);
         }
 
-        /* Animación para error */
+        /* Animaciones */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-5px); }
             40%, 80% { transform: translateX(5px); }
         }
 
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
         /* Responsividad */
         @media (max-width: 768px) {
+            .header-top { flex-direction: column; gap: 1rem; }
             .board { flex-direction: column; }
-            .card { font-size: 1rem; padding: 0.8rem; }
+            .card { font-size: 0.95rem; padding: 0.8rem; min-height: 60px; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 0.5rem; }
         }
     </style>
 </head>
 <body>
 
     <div class="game-container">
-        <h1>The Passive Voice</h1>
-        <p class="instructions">Conecta la oración en <strong>Active Voice</strong> con su equivalente en <strong>Passive Voice</strong>.</p>
+        <div class="header-top">
+            <h1>The Passive Voice</h1>
+            <div class="timer" id="timer">01:00</div>
+        </div>
+        <p class="instructions">Conecta la oración en <strong>Active Voice</strong> con su equivalente en <strong>Passive Voice</strong> antes de que termine el tiempo.</p>
         
-        <div class="board">
+        <div class="board" id="game-board">
             <div class="column">
                 <div class="column-title">Active Voice</div>
                 <div id="active-list"></div>
@@ -214,29 +304,50 @@
             </div>
         </div>
 
-        <!-- Modal de Victoria -->
-        <div class="modal-overlay" id="win-modal">
-            <div class="modal-content">
-                <h2>¡Brillante! 🎉</h2>
-                <p>Has dominado el uso de la Voz Pasiva.</p>
+        <!-- Modal de Resultados -->
+        <div class="modal-overlay" id="result-modal">
+            <div class="modal-content" id="modal-content">
+                <h2 id="modal-title">¡Brillante! 🎉</h2>
+                <p id="modal-subtitle">Has dominado el uso de la Voz Pasiva.</p>
+                
+                <div class="mistakes-container" id="mistakes-container">
+                    <!-- La tabla de errores se inyecta aquí -->
+                </div>
+
                 <button class="btn-restart" onclick="initGame()">Jugar de Nuevo</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Base de datos de conceptos (Educativa y clara)
-        const grammarPairs = [
+        // Base de datos ampliada
+        const fullGrammarDatabase = [
             { id: 1, active: "Shakespeare wrote Hamlet", passive: "Hamlet was written by Shakespeare" },
             { id: 2, active: "They are building a new hospital", passive: "A new hospital is being built" },
             { id: 3, active: "The dog chased the cat", passive: "The cat was chased by the dog" },
             { id: 4, active: "She will sing a beautiful song", passive: "A beautiful song will be sung by her" },
-            { id: 5, active: "Someone has stolen my keys", passive: "My keys have been stolen" }
+            { id: 5, active: "Someone has stolen my keys", passive: "My keys have been stolen" },
+            { id: 6, active: "Picasso painted Guernica", passive: "Guernica was painted by Picasso" },
+            { id: 7, active: "The mechanic fixed the car", passive: "The car was fixed by the mechanic" },
+            { id: 8, active: "The teacher will grade the tests", passive: "The tests will be graded by the teacher" },
+            { id: 9, active: "Millions of people speak English", passive: "English is spoken by millions of people" },
+            { id: 10, active: "They had already eaten dinner", passive: "Dinner had already been eaten" },
+            { id: 11, active: "Fleming discovered penicillin", passive: "Penicillin was discovered by Fleming" },
+            { id: 12, active: "The hurricane destroyed the city", passive: "The city was destroyed by the hurricane" },
+            { id: 13, active: "Someone is cleaning the room", passive: "The room is being cleaned" },
+            { id: 14, active: "The chef cooks delicious meals", passive: "Delicious meals are cooked by the chef" },
+            { id: 15, active: "They cancelled the flight", passive: "The flight was cancelled" }
         ];
 
+        let currentPairs = [];
         let selectedActive = null;
         let selectedPassive = null;
         let matchedPairs = 0;
+        
+        // Variables de temporizador y errores
+        let timerInterval;
+        let timeLeft = 60;
+        let mistakes = [];
 
         // Utilidad para desordenar arrays (Algoritmo de Fisher-Yates)
         function shuffle(array) {
@@ -249,23 +360,38 @@
             return array;
         }
 
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
         // Inicializar el juego
         function initGame() {
             const activeList = document.getElementById('active-list');
             const passiveList = document.getElementById('passive-list');
-            const modal = document.getElementById('win-modal');
+            const modal = document.getElementById('result-modal');
+            const timerEl = document.getElementById('timer');
             
             // Reiniciar estado
             activeList.innerHTML = '';
             passiveList.innerHTML = '';
             modal.classList.remove('active');
+            document.getElementById('game-board').style.pointerEvents = 'all';
+            
             selectedActive = null;
             selectedPassive = null;
             matchedPairs = 0;
+            mistakes = []; // Limpiar historial de errores
+            
+            timerEl.classList.remove('danger');
 
-            // Crear arrays separados y mezclados
-            let actives = shuffle([...grammarPairs]);
-            let passives = shuffle([...grammarPairs]);
+            // Seleccionar 5 pares aleatorios de la base de datos
+            currentPairs = shuffle([...fullGrammarDatabase]).slice(0, 5);
+
+            // Crear arrays separados y mezclados para las columnas
+            let actives = shuffle([...currentPairs]);
+            let passives = shuffle([...currentPairs]);
 
             // Renderizar cartas Activas
             actives.forEach(item => {
@@ -288,6 +414,30 @@
                 div.onclick = () => handleCardClick(div);
                 passiveList.appendChild(div);
             });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 60;
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = formatTime(timeLeft);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = formatTime(timeLeft);
+                
+                // Efecto visual si queda poco tiempo
+                if (timeLeft <= 10) {
+                    timerEl.classList.add('danger');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame(false); // Falso = perdió por tiempo
+                }
+            }, 1000);
         }
 
         // Lógica de interacción
@@ -318,7 +468,7 @@
             const passiveCard = selectedPassive;
 
             // Bloquear temporalmente la selección extra
-            document.body.style.pointerEvents = 'none';
+            document.getElementById('game-board').style.pointerEvents = 'none';
 
             if (activeId === passiveId) {
                 // Éxito
@@ -328,12 +478,18 @@
                     matchedPairs++;
                     resetSelection();
                     
-                    if (matchedPairs === grammarPairs.length) {
-                        setTimeout(showWinScreen, 500);
+                    if (matchedPairs === currentPairs.length) {
+                        clearInterval(timerInterval);
+                        setTimeout(() => endGame(true), 500); // True = ganó
                     }
                 }, 400);
             } else {
-                // Error
+                // Error: Registrar el fallo
+                mistakes.push({
+                    active: activeCard.textContent,
+                    passive: passiveCard.textContent
+                });
+
                 setTimeout(() => {
                     activeCard.classList.add('wrong');
                     passiveCard.classList.add('wrong');
@@ -350,11 +506,52 @@
         function resetSelection() {
             selectedActive = null;
             selectedPassive = null;
-            document.body.style.pointerEvents = 'all';
+            document.getElementById('game-board').style.pointerEvents = 'all';
         }
 
-        function showWinScreen() {
-            const modal = document.getElementById('win-modal');
+        function endGame(isWin) {
+            document.getElementById('game-board').style.pointerEvents = 'none';
+            const modal = document.getElementById('result-modal');
+            const modalContent = document.getElementById('modal-content');
+            const modalTitle = document.getElementById('modal-title');
+            const modalSubtitle = document.getElementById('modal-subtitle');
+            const mistakesContainer = document.getElementById('mistakes-container');
+
+            // Configurar títulos según resultado
+            if (isWin) {
+                modalContent.classList.remove('timeout');
+                modalTitle.textContent = '¡Brillante! 🎉';
+                modalSubtitle.textContent = `¡Has completado el tablero con ${timeLeft} segundos de sobra!`;
+            } else {
+                modalContent.classList.add('timeout');
+                modalTitle.textContent = '¡Tiempo Terminado! ⏱️';
+                modalSubtitle.textContent = 'No te preocupes, ¡la práctica hace al maestro!';
+            }
+
+            // Generar tabla de errores
+            if (mistakes.length === 0) {
+                mistakesContainer.innerHTML = '<div class="perfect-score">🌟 ¡Partida Perfecta! Cero errores cometidos. 🌟</div>';
+            } else {
+                let tableHTML = `
+                    <h3>Registro de Errores (${mistakes.length})</h3>
+                    <table>
+                        <tr>
+                            <th>Voz Activa (Intentada)</th>
+                            <th>Voz Pasiva (Errónea)</th>
+                        </tr>
+                `;
+                mistakes.forEach(m => {
+                    tableHTML += `
+                        <tr>
+                            <td>${m.active}</td>
+                            <td>${m.passive}</td>
+                        </tr>
+                    `;
+                });
+                tableHTML += '</table>';
+                mistakesContainer.innerHTML = tableHTML;
+            }
+
             modal.classList.add('active');
         }
 
