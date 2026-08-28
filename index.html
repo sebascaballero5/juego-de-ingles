@@ -3,6 +3,582 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Passive Voice Match - Master Level</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --container-bg: #16213e;
+            --primary: #4361ee;
+            --primary-hover: #3a0ca3;
+            --secondary: #f72585;
+            --success: #06d6a0;
+            --error: #ef476f;
+            --warning: #ffd166;
+            --text-light: #f8f9fa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .game-container {
+            background-color: var(--container-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 1100px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            color: var(--secondary);
+            font-size: 2.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .timer {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            color: var(--success);
+            transition: color 0.3s;
+        }
+        
+        .timer.danger {
+            color: var(--error);
+            animation: pulse 1s infinite;
+        }
+
+        p.instructions {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: #a9b0c0;
+        }
+
+        .board {
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem; /* Reducido para acomodar 15 cartas */
+        }
+
+        .column-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+            border: 2px solid transparent;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            user-select: none;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.2);
+            min-height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        .card.selected {
+            border-color: var(--secondary);
+            background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(247, 37, 133, 0.5);
+        }
+
+        .card.matched {
+            background: linear-gradient(135deg, var(--success) 0%, #04b285 100%);
+            color: #000;
+            pointer-events: none;
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        .card.wrong {
+            background: linear-gradient(135deg, var(--error) 0%, #d90429 100%);
+            animation: shake 0.4s ease;
+        }
+
+        /* Modal y Tabla de Resultados */
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(26, 26, 46, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            z-index: 10;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1f2954 0%, #16213e 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            width: 90%;
+            max-width: 700px;
+            max-height: 90%;
+            overflow-y: auto;
+            border: 2px solid var(--primary);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--success);
+        }
+        
+        .modal-content.timeout h2 {
+            color: var(--error);
+        }
+
+        .modal-content p {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: #e0fbfc;
+        }
+
+        .mistakes-container {
+            margin-bottom: 2rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .mistakes-container h3 {
+            color: var(--warning);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: left;
+        }
+
+        th {
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            position: sticky;
+            top: 0;
+            background-color: #1a2245;
+        }
+        
+        td {
+            color: #ccc;
+        }
+
+        .perfect-score {
+            color: var(--success);
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 1rem;
+        }
+
+        .btn-restart {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(247, 37, 133, 0.4);
+            margin-top: 1rem;
+        }
+
+        .btn-restart:hover {
+            background-color: #b5179e;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 37, 133, 0.6);
+        }
+
+        /* Animaciones */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsividad */
+        @media (max-width: 768px) {
+            .header-top { flex-direction: column; gap: 1rem; }
+            .board { flex-direction: column; }
+            .card { font-size: 0.85rem; padding: 0.5rem; min-height: 45px; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="header-top">
+            <h1>The Passive Voice</h1>
+            <div class="timer" id="timer">01:00</div>
+        </div>
+        <p class="instructions">Conecta la oración en <strong>Active Voice</strong> con su equivalente correcto en <strong>Passive Voice</strong>. <br><span style="color:var(--error); font-size:0.9rem;">¡Cuidado con las 5 opciones trampa con errores gramaticales!</span></p>
+        
+        <div class="board" id="game-board">
+            <div class="column">
+                <div class="column-title">Active Voice (10)</div>
+                <div id="active-list"></div>
+            </div>
+            <div class="column">
+                <div class="column-title">Passive Voice (15)</div>
+                <div id="passive-list"></div>
+            </div>
+        </div>
+
+        <!-- Modal de Resultados -->
+        <div class="modal-overlay" id="result-modal">
+            <div class="modal-content" id="modal-content">
+                <h2 id="modal-title">¡Brillante! 🎉</h2>
+                <p id="modal-subtitle">Has dominado el uso de la Voz Pasiva.</p>
+                
+                <div class="mistakes-container" id="mistakes-container">
+                    <!-- La tabla de errores se inyecta aquí -->
+                </div>
+
+                <button class="btn-restart" onclick="initGame()">Jugar de Nuevo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Base de datos de 20 elementos con distractores (fakePassive)
+        const fullGrammarDatabase = [
+            { id: 1, active: "Shakespeare wrote Hamlet", passive: "Hamlet was written by Shakespeare", fakePassive: "Hamlet was wrote by Shakespeare" },
+            { id: 2, active: "They are building a new hospital", passive: "A new hospital is being built", fakePassive: "A new hospital is builded" },
+            { id: 3, active: "The dog chased the cat", passive: "The cat was chased by the dog", fakePassive: "The cat was chase by the dog" },
+            { id: 4, active: "She will sing a beautiful song", passive: "A beautiful song will be sung by her", fakePassive: "A beautiful song will sung by her" },
+            { id: 5, active: "Someone has stolen my keys", passive: "My keys have been stolen", fakePassive: "My keys has been stolen" },
+            { id: 6, active: "Picasso painted Guernica", passive: "Guernica was painted by Picasso", fakePassive: "Guernica painted by Picasso" },
+            { id: 7, active: "The mechanic fixed the car", passive: "The car was fixed by the mechanic", fakePassive: "The car was fixing by the mechanic" },
+            { id: 8, active: "The teacher will grade the tests", passive: "The tests will be graded by the teacher", fakePassive: "The tests will be grade by the teacher" },
+            { id: 9, active: "Millions of people speak English", passive: "English is spoken by millions of people", fakePassive: "English is speaked by millions of people" },
+            { id: 10, active: "They had already eaten dinner", passive: "Dinner had already been eaten", fakePassive: "Dinner had already ate" },
+            { id: 11, active: "Fleming discovered penicillin", passive: "Penicillin was discovered by Fleming", fakePassive: "Penicillin was discover by Fleming" },
+            { id: 12, active: "The hurricane destroyed the city", passive: "The city was destroyed by the hurricane", fakePassive: "The city was destroy by the hurricane" },
+            { id: 13, active: "Someone is cleaning the room", passive: "The room is being cleaned", fakePassive: "The room is been cleaned" },
+            { id: 14, active: "The chef cooks delicious meals", passive: "Delicious meals are cooked by the chef", fakePassive: "Delicious meals are cook by the chef" },
+            { id: 15, active: "They cancelled the flight", passive: "The flight was cancelled", fakePassive: "The flight was cancel" },
+            { id: 16, active: "The company launched a new product", passive: "A new product was launched by the company", fakePassive: "A new product was launch by the company" },
+            { id: 17, active: "The children are playing the game", passive: "The game is being played by the children", fakePassive: "The game is played by the children" },
+            { id: 18, active: "A famous architect designed this building", passive: "This building was designed by a famous architect", fakePassive: "This building was design by a famous architect" },
+            { id: 19, active: "The storm has delayed the train", passive: "The train has been delayed by the storm", fakePassive: "The train has delayed by the storm" },
+            { id: 20, active: "They will publish the book next month", passive: "The book will be published next month", fakePassive: "The book will publish next month" }
+        ];
+
+        let currentPairs = [];
+        let selectedActive = null;
+        let selectedPassive = null;
+        let matchedPairs = 0;
+        
+        let timerInterval;
+        let timeLeft = 60;
+        let mistakes = [];
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function initGame() {
+            const activeList = document.getElementById('active-list');
+            const passiveList = document.getElementById('passive-list');
+            const modal = document.getElementById('result-modal');
+            const timerEl = document.getElementById('timer');
+            
+            // Reiniciar estado
+            activeList.innerHTML = '';
+            passiveList.innerHTML = '';
+            modal.classList.remove('active');
+            document.getElementById('game-board').style.pointerEvents = 'all';
+            
+            selectedActive = null;
+            selectedPassive = null;
+            matchedPairs = 0;
+            mistakes = []; 
+            
+            timerEl.classList.remove('danger');
+
+            // Seleccionar 10 preguntas base
+            currentPairs = shuffle([...fullGrammarDatabase]).slice(0, 10);
+
+            // Preparar columna Activa (10 cartas)
+            let actives = shuffle([...currentPairs]);
+
+            // Preparar opciones correctas (10 cartas)
+            let realPassives = currentPairs.map(item => ({
+                id: item.id,
+                text: item.passive,
+                type: 'passive'
+            }));
+
+            // Seleccionar aleatoriamente 5 falsas basadas en las oraciones activas actuales
+            let selectedFakes = shuffle([...currentPairs]).slice(0, 5);
+            let fakePassives = selectedFakes.map(item => ({
+                id: 'fake-' + item.id, // ID alterado para que registre error siempre
+                text: item.fakePassive,
+                type: 'passive'
+            }));
+
+            // Combinar correctas y falsas, y mezclar (15 cartas en total)
+            let allPassives = shuffle([...realPassives, ...fakePassives]);
+
+            // Renderizar cartas Activas
+            actives.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.textContent = item.active;
+                div.dataset.id = item.id;
+                div.dataset.type = 'active';
+                div.onclick = () => handleCardClick(div);
+                activeList.appendChild(div);
+            });
+
+            // Renderizar cartas Pasivas (incluye las 5 trampa)
+            allPassives.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.textContent = item.text;
+                div.dataset.id = item.id;
+                div.dataset.type = 'passive';
+                div.onclick = () => handleCardClick(div);
+                passiveList.appendChild(div);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 60;
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = formatTime(timeLeft);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = formatTime(timeLeft);
+                
+                if (timeLeft <= 10) {
+                    timerEl.classList.add('danger');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame(false); 
+                }
+            }, 1000);
+        }
+
+        function handleCardClick(card) {
+            if (card.classList.contains('matched') || card.classList.contains('selected')) return;
+
+            if (card.dataset.type === 'active') {
+                if (selectedActive) selectedActive.classList.remove('selected');
+                selectedActive = card;
+            } else {
+                if (selectedPassive) selectedPassive.classList.remove('selected');
+                selectedPassive = card;
+            }
+
+            card.classList.add('selected');
+
+            if (selectedActive && selectedPassive) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const activeId = selectedActive.dataset.id;
+            const passiveId = selectedPassive.dataset.id;
+            const activeCard = selectedActive;
+            const passiveCard = selectedPassive;
+
+            document.getElementById('game-board').style.pointerEvents = 'none';
+
+            // Si los IDs coinciden, es acierto (Las falsas tienen "fake-X", por lo que nunca coincidirán)
+            if (activeId === passiveId) {
+                setTimeout(() => {
+                    activeCard.classList.replace('selected', 'matched');
+                    passiveCard.classList.replace('selected', 'matched');
+                    matchedPairs++;
+                    resetSelection();
+                    
+                    if (matchedPairs === currentPairs.length) {
+                        clearInterval(timerInterval);
+                        setTimeout(() => endGame(true), 500);
+                    }
+                }, 300);
+            } else {
+                mistakes.push({
+                    active: activeCard.textContent,
+                    passive: passiveCard.textContent
+                });
+
+                setTimeout(() => {
+                    activeCard.classList.add('wrong');
+                    passiveCard.classList.add('wrong');
+                    
+                    setTimeout(() => {
+                        activeCard.classList.remove('selected', 'wrong');
+                        passiveCard.classList.remove('selected', 'wrong');
+                        resetSelection();
+                    }, 400);
+                }, 300);
+            }
+        }
+
+        function resetSelection() {
+            selectedActive = null;
+            selectedPassive = null;
+            document.getElementById('game-board').style.pointerEvents = 'all';
+        }
+
+        function endGame(isWin) {
+            document.getElementById('game-board').style.pointerEvents = 'none';
+            const modal = document.getElementById('result-modal');
+            const modalContent = document.getElementById('modal-content');
+            const modalTitle = document.getElementById('modal-title');
+            const modalSubtitle = document.getElementById('modal-subtitle');
+            const mistakesContainer = document.getElementById('mistakes-container');
+
+            if (isWin) {
+                modalContent.classList.remove('timeout');
+                modalTitle.textContent = '¡Maestría Total! 🏆';
+                modalSubtitle.textContent = `Esquivaste las trampas y completaste el juego con ${timeLeft} segundos de sobra.`;
+            } else {
+                modalContent.classList.add('timeout');
+                modalTitle.textContent = '¡Tiempo Terminado! ⏱️';
+                modalSubtitle.textContent = `Lograste conectar ${matchedPairs} de 10 pares correctos. ¡Sigue practicando!`;
+            }
+
+            if (mistakes.length === 0) {
+                mistakesContainer.innerHTML = '<div class="perfect-score">🌟 ¡Partida Perfecta! Ni un solo error, excelente detección de las oraciones falsas. 🌟</div>';
+            } else {
+                let tableHTML = `
+                    <h3>Registro de Errores (${mistakes.length})</h3>
+                    <table>
+                        <tr>
+                            <th>Voz Activa</th>
+                            <th>Conexión Incorrecta / Trampa</th>
+                        </tr>
+                `;
+                mistakes.forEach(m => {
+                    tableHTML += `
+                        <tr>
+                            <td>${m.active}</td>
+                            <td>${m.passive}</td>
+                        </tr>
+                    `;
+                });
+                tableHTML += '</table>';
+                mistakesContainer.innerHTML = tableHTML;
+            }
+
+            modal.classList.add('active');
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Passive Voice Match - Expert</title>
     <style>
         :root {
